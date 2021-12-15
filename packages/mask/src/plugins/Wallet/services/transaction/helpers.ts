@@ -1,6 +1,6 @@
 import { sha3, toHex } from 'web3-utils'
 import type { JsonRpcPayload } from 'web3-core-helpers'
-import type { Transaction, TransactionConfig, TransactionReceipt } from 'web3-core'
+import type { RequestArguments, Transaction, TransactionConfig, TransactionReceipt } from 'web3-core'
 import {
     isSameAddress,
     TransactionState,
@@ -45,12 +45,6 @@ export function toPayload(transaction: Transaction): JsonRpcPayload {
     }
 }
 
-export function getPayloadConfig(payload: JsonRpcPayload) {
-    if (!payload.id || payload.method !== EthereumMethodType.ETH_SEND_TRANSACTION) return
-    const [config] = payload.params as [TransactionConfig]
-    return config
-}
-
 export function getPayloadId(payload: JsonRpcPayload) {
     const config = getPayloadConfig(payload)
     if (!config) return ''
@@ -59,12 +53,18 @@ export function getPayloadId(payload: JsonRpcPayload) {
     return sha3([from, to, data, value].join('_')) ?? ''
 }
 
-export function getPayloadFrom(payload: JsonRpcPayload) {
+export function getPayloadConfig(payload: JsonRpcPayload | RequestArguments) {
+    if (!payload.id || payload.method !== EthereumMethodType.ETH_SEND_TRANSACTION) return
+    const [config] = payload.params as [TransactionConfig]
+    return config
+}
+
+export function getPayloadFrom(payload: JsonRpcPayload | RequestArguments) {
     const config = getPayloadConfig(payload)
     return config?.from as string | undefined
 }
 
-export function getPayloadTo(payload: JsonRpcPayload) {
+export function getPayloadTo(payload: JsonRpcPayload | RequestArguments) {
     const config = getPayloadConfig(payload)
     return config?.to as string | undefined
 }
